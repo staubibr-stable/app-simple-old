@@ -130,7 +130,7 @@ export default Core.Templatable("Application", class Application extends Templat
 		
 		this.files.diagram = this.Widget("linker").svg_file;
 	}
-		
+
 	OnFiles_Loaded(ev) {
 		this.Widget("server-loader").Hide();
 		this.Widget("loader").Load(ev.files);
