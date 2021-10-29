@@ -118,10 +118,17 @@ export default Core.Templatable("Application", class Application extends Templat
 	}
 	
 	OnButtonDownload_Click(ev) {		
-		var files = [this.files.structure, this.files.messages, this.configuration.ToFile()];
+		if (this.files.cd_ma && this.files.cd_log) {
+			var files = [this.configuration.ToFile()];
+			
+		}
 		
-		if (this.files.diagram) files.push(this.files.diagram);
-		
+		else {
+			var files = [this.files.structure, this.files.messages, this.configuration.ToFile()];
+			
+			if (this.files.diagram) files.push(this.files.diagram);
+		}
+			
 		Zip.SaveZipStream(this.simulation.name, files);
 	}
 	
