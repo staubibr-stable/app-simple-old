@@ -12,7 +12,7 @@ export default Core.Templatable("Widget.Header", class Header extends Templated 
 	Template() {
 		return "<h1 class='first-row'><a href='https://arslab.sce.carleton.ca/' target='_blank'>nls(Header_Lab)</a></h1>" +
 			   "<div class='second-row'>" +
-				  "<h2><a href='https://staubibr.github.io/arslab-prd/app-simple/index.html' target='_blank'>nls(Header_App)</a></h2>" +
+				  "<h2><a href='http://206.12.94.204:8080/arslab-web/1.7/app-simple/index.html' target='_blank'>nls(Header_App)</a></h2>" +
 				  "<div class='links-container'>" +
 				     "<a href='http://www.sce.carleton.ca/faculty/wainer/wbgraf/doku.php?id=model_samples:start' target='_blank'>nls(Header_Sample)</a> &emsp;" +
 				 	 "<a href='mailto:bruno.st-aubin@carleton.ca?Subject=[CellDEVSViewer][alpha]' target='_blank'>nls(Header_Problem)</a>" +
