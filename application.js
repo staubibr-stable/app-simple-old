@@ -1,22 +1,22 @@
 'use strict';
 
 import Header from './widgets/header.js';
-import Core from '../api-web-devs/tools/core.js';
-import Dom from '../api-web-devs/tools/dom.js';
-import Templated from '../api-web-devs/components/templated.js';
-import Configuration from '../api-web-devs/components/configuration/configuration.js';
-import Styler from '../api-web-devs/components/styler.js';
-import Popup from '../api-web-devs/ui/popup.js';
-import Loader from '../api-web-devs/widgets/loader.js';
-import Playback from '../api-web-devs/widgets/playback.js';
-import ServerLoader from '../api-web-devs/widgets/server-loader.js';
-import PopupPalette from '../api-web-devs/widgets/palette/popup-palette.js';
-import Settings from '../api-web-devs/widgets/settings/settings.js';
-import PopupLinker from '../api-web-devs/widgets/linker/popup-linker.js';
-import DiagramAuto from '../api-web-devs/widgets/diagram/auto.js'
-import GridAuto from '../api-web-devs/widgets/grid/auto.js'
-import Recorder from '../api-web-devs/components/recorder.js';
-import Zip from '../api-web-devs/tools/zip.js';
+import Core from '../app-framework/tools/core.js';
+import Dom from '../app-framework/tools/dom.js';
+import Templated from '../app-framework/components/templated.js';
+import Configuration from '../app-framework/components/configuration/configuration.js';
+import Styler from '../app-framework/components/styler.js';
+import Popup from '../app-framework/ui/popup.js';
+import Loader from '../app-framework/widgets/loader.js';
+import Playback from '../app-framework/widgets/playback.js';
+import ServerLoader from '../app-framework/widgets/server-loader.js';
+import PopupPalette from '../app-framework/widgets/palette/popup-palette.js';
+import Settings from '../app-framework/widgets/settings/settings.js';
+import PopupLinker from '../app-framework/widgets/linker/popup-linker.js';
+import DiagramAuto from '../app-framework/widgets/diagram/auto.js'
+import GridAuto from '../app-framework/widgets/grid/auto.js'
+import Recorder from '../app-framework/components/recorder.js';
+import Zip from '../app-framework/tools/zip.js';
 
 export default Core.Templatable("Application", class Application extends Templated { 
 
