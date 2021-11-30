@@ -8,7 +8,7 @@ Core.WaitForDocument().then(Start);
 function Start() {	
 	var path = location.href.split("/").slice(0,-2).join("/");
 
-	streamSaver.mitm = path + "/app-framework/references/StreamSaver/mitm.html";
+	streamSaver.mitm = path + "/app-references/references/StreamSaver/mitm.html";
 	
 	var app = new Application(document.body);
 }

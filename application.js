@@ -4,7 +4,7 @@ import Header from './widgets/header.js';
 import Core from '../app-framework/tools/core.js';
 import Dom from '../app-framework/tools/dom.js';
 import Templated from '../app-framework/components/templated.js';
-import Configuration from '../app-framework/components/configuration/configuration.js';
+import Configuration from '../app-framework/data_structures/configuration/configuration.js';
 import Styler from '../app-framework/components/styler.js';
 import Popup from '../app-framework/ui/popup.js';
 import Loader from '../app-framework/widgets/loader.js';
@@ -84,9 +84,7 @@ export default Core.Templatable("Application", class Application extends Templat
 		this.configuration = ev.configuration;
 		this.simulation = ev.simulation;
 		this.files = ev.files;
-		
-		this.simulation.Initialize(this.configuration.playback.cache);
-		
+				
 		this.ShowView(ev.simulation.type);
 		
 		this.Widget("playback").recorder = new Recorder(this.view.widget.canvas);
