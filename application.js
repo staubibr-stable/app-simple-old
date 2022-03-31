@@ -1,153 +1,164 @@
 'use strict';
 
+import Application from '../app-framework/base/application.js';
+import Popup from '../app-framework/ui/popup.js';
+import Playback from '../app-framework/widgets/playback.js';
+import ServerLoader from '../app-framework/widgets/server-loader.js';
+import Settings from '../app-framework/widgets/settings/settings.js';
+import PopupLinker from '../app-framework/widgets/linker/popup-linker.js';
+import PopupPalette from '../app-framework/widgets/palette/popup-palette.js';
 import Header from './widgets/header.js';
 import Core from '../app-framework/tools/core.js';
 import Dom from '../app-framework/tools/dom.js';
-import Templated from '../app-framework/components/templated.js';
 import Configuration from '../app-framework/data_structures/configuration/configuration.js';
 import Styler from '../app-framework/components/styler.js';
-import Popup from '../app-framework/ui/popup.js';
 import Loader from '../app-framework/widgets/loader.js';
-import Playback from '../app-framework/widgets/playback.js';
-import ServerLoader from '../app-framework/widgets/server-loader.js';
-import PopupPalette from '../app-framework/widgets/palette/popup-palette.js';
-import Settings from '../app-framework/widgets/settings/settings.js';
-import PopupLinker from '../app-framework/widgets/linker/popup-linker.js';
 import DiagramAuto from '../app-framework/widgets/diagram/auto.js'
 import GridAuto from '../app-framework/widgets/grid/auto.js'
 import Recorder from '../app-framework/components/recorder.js';
 import Zip from '../app-framework/tools/zip.js';
 
-export default Core.Templatable("Application", class Application extends Templated { 
+export default class AppSimple extends Application { 
 
-	constructor(node) {		
-		super(node);
+	constructor(container) {		
+		super(container);
 		
-		Dom.AddCss(document.body, "Simple");
-	
-		this.AddWidget("server-loader", new ServerLoader());
-		this.AddWidget("settings", new Settings());
-		this.AddWidget("linker", new PopupLinker());
-		this.AddWidget("palette", new PopupPalette());
+		Dom.add_css(document.body, "Simple");
 		
-		this.Node('btnRedo').On('click', this.OnButtonRedo_Click.bind(this));
-		this.Node('btnServer').On('click', this.OnButtonServerLoader_Click.bind(this));
-		this.Node('btnSettings').On('click', this.OnButtonSettings_Click.bind(this));
-		this.Node('btnDownload').On('click', this.OnButtonDownload_Click.bind(this));
-		this.Node('btnLinker').On('click', this.OnButtonLinker_Click.bind(this));
-		this.Node('btnPalette').On('click', this.OnButtonPalette_Click.bind(this));
+		this.popups = {
+			server_loader: new Popup(this.nls("Popup_SL_Title"), new ServerLoader()),
+			settings: new Popup(this.nls("Popup_Settings_Title"), new Settings()),
+			palette: new PopupPalette(),
+			linker: new PopupLinker()
+		}
 		
-		this.Widget('loader').On('ready', this.OnUpload_Ready.bind(this));
-		this.Widget('loader').On('error', this.OnWidget_Error.bind(this));
-		this.Widget("server-loader").On("filesready", this.OnFiles_Loaded.bind(this));
-		this.Widget("server-loader").On("error", this.OnWidget_Error.bind(this));
+		this.widgets = {
+			loader: this.elems.loader,
+			server_loader: this.popups.server_loader.widget,
+			settings: this.popups.settings.widget,
+			linker: this.popups.linker.widget,
+			playback: this.elems.playback
+		};
+					
+		this.elems.btnRedo.addEventListener('click', this.on_button_redo_click.bind(this));
+		this.elems.btnServer.addEventListener('click', this.on_button_server_loader_click.bind(this));
+		this.elems.btnSettings.addEventListener('click', this.on_button_settings_click.bind(this));
+		this.elems.btnDownload.addEventListener('click', this.on_button_download_click.bind(this));
+		this.elems.btnLinker.addEventListener('click', this.on_button_linker_click.bind(this));
+		this.elems.btnPalette.addEventListener('click', this.on_button_palette_click.bind(this));
 		
-		this.Clear();
-		this.ShowView("load");
+		this.widgets.loader.on("ready", this.on_upload_ready.bind(this));
+		this.widgets.server_loader.on("files-ready", this.on_files_loaded.bind(this));
+		
+		this.handle_widget_errors([this.widgets.loader, this.widgets.server_loader]);
+		
+		this.clear();
+		this.show_view("load");
 	}
 	
-	ShowView(view) {
-		this.Elem("btnSettings").disabled = view == "load";
-		this.Elem("btnDownload").disabled = view == "load";
-		this.Elem("btnLinker").disabled = view != "DEVS";
-		this.Elem("btnPalette").disabled = view != "Cell-DEVS";
+	show_view(view) {
+		this.elems.btnSettings.disabled = view == "load";
+		this.elems.btnDownload.disabled = view == "load";
+		this.elems.btnLinker.disabled = view != "DEVS";
+		this.elems.btnPalette.disabled = view != "Cell-DEVS";
 		
-		Dom.SetCss(this.Elem("main"), `view-${view}`);
+		Dom.set_css(this.elems.main, `view-${view}`);
 		
 		if (view === "load") return;
 		
 		else if (view == "DEVS") {			
-			this.view = new DiagramAuto(this.Elem("view"), this.simulation, this.configuration.diagram);
+			this.view = new DiagramAuto(this.elems.view, this.simulation, this.configuration.diagram);
 		}
 		else if (view === "Cell-DEVS") {
-			this.view = new GridAuto(this.Elem("view"), this.simulation, this.configuration.grid);
+			this.view = new GridAuto(this.elems.view, this.simulation, this.configuration.grid);
 		}
 		else {
-			this.OnWidget_Error(new Error("The base DEVS viewer does not support simulations of type " + view));
+			this.handle_error(new Error("The base DEVS viewer does not support simulations of type " + view));
 		}
 		
-		this.view.Resize();
-		this.view.Redraw();
+		this.view.resize();
+		this.view.redraw();
 	}
 	
-	Clear() {
-		if (this.view) this.view.Destroy();
+	clear() {
+		if (this.view) this.view.destroy();
 		
 		this.configuration = null;
 		this.simulation = null;
 		this.view = null;
 	}
 	
-	OnUpload_Ready(ev) {
-		this.Clear();
+	on_upload_ready(ev) {
+		this.clear();
 		
 		this.configuration = ev.configuration;
 		this.simulation = ev.simulation;
 		this.files = ev.files;
 				
-		this.ShowView(ev.simulation.type);
+		this.show_view(ev.simulation.type);
 		
-		this.Widget("playback").recorder = new Recorder(this.view.widget.canvas);
-		this.Widget("playback").Initialize(this.simulation, this.configuration.playback);
-		this.Widget('settings').Initialize(this.simulation, this.configuration);	
-		this.Widget('linker').Initialize(this.simulation, this.files.diagram);	
+		this.widgets.playback.recorder = new Recorder(this.view.widget.canvas);
+		this.widgets.playback.initialize(this.simulation, this.configuration.playback);
+		this.widgets.settings.initialize(this.simulation, this.configuration);	
+		
+		this.popups.linker.initialize(this.simulation, this.files.diagram);	
 		
 		if (this.simulation.type != "Cell-DEVS") return;
 		
-		this.Widget('palette').Initialize(this.simulation, this.configuration);	
+		this.popups.palette.initialize(this.simulation, this.configuration);
+		
 	}
 	
-	OnButtonServerLoader_Click(ev) {
-		this.Widget("server-loader").Show();
+	on_button_server_loader_click(ev) {
+		this.popups.server_loader.show();
 	}
 	
-	OnButtonRedo_Click(ev) {	
-		this.Clear();			
-		this.ShowView("load");
+	on_button_redo_click(ev) {	
+		this.clear();			
+		this.show_view("load");
 	}
 	
-	OnButtonSettings_Click(ev) {
-		this.Widget("settings").UpdateUI();
-		this.Widget("settings").Show();
+	on_button_settings_click(ev) {
+		this.widgets.settings.update_ui();
+		this.popups.settings.show();
 	}
 	
-	OnButtonPalette_Click(ev) {
-		this.Widget("palette").Show();
+	on_button_palette_click(ev) {
+		this.popups.palette.show();
 	}
 	
-	OnButtonDownload_Click(ev) {		
+	on_button_download_click(ev) {		
 		if (this.files.cd_ma && this.files.cd_log) {
-			var files = [this.configuration.ToFile()];
-			
+			var files = [this.configuration.to_file()];
 		}
 		
 		else {
-			var files = [this.files.structure, this.files.messages, this.configuration.ToFile()];
+			var files = [this.files.structure, this.files.messages, this.configuration.to_file()];
 			
 			if (this.files.diagram) files.push(this.files.diagram);
 		}
 			
-		Zip.SaveZipStream(this.simulation.name, files);
+		Zip.save_zip_stream(this.simulation.name, files);
 	}
 	
-	async OnButtonLinker_Click(ev) {
-		await this.Widget("linker").Show(this.simulation, this.files.diagram);
+	async on_button_linker_click(ev) {
+		await this.popups.linker.show(this.simulation, this.files.diagram);
 		
-		this.files.diagram = this.Widget("linker").svg_file;
+		this.files.diagram = this.widgets.linker.svg_file;
 	}
 
-	OnFiles_Loaded(ev) {
-		this.Widget("server-loader").Hide();
-		this.Widget("loader").Load(ev.files);
+	on_files_loaded(ev) {
+		this.popups.server_loader.hide();
+		this.widgets.loader.load(ev.files);
 	}
 	
-	OnWidget_Error(ev) {
+	on_widget_error(ev) {
 		alert (ev.error);
 	}
 		
-	Template() {
+	html() {
 		return	"<main handle='main'>" +
-					"<div handle='header' class='application-header' widget='Widget.Header'></div>" +
+					"<div handle='header' widget='App.Widget.Header'></div>" +
 				    "<div class='centered-row'>" + 
 						"<div class='button-column'>" + 
 						   "<button handle='btnRedo' title='nls(Application_Redo)' class='fas fa-redo'></button>" +
@@ -155,11 +166,11 @@ export default Core.Templatable("Application", class Application extends Templat
 						"</div>" +
 						"<div class='body'>" + 
 						   "<div handle='dropzone' class='dropzone-container'>" + 
-							   "<div handle='loader' widget='Widget.Loader'></div>" +
+							   "<div handle='loader' widget='Api.Widget.Loader'></div>" +
 						   "</div>" +
 						   "<div handle='views' class='simulation-container'>" +
 							   "<div handle='view' class='simulation'></div>" +
-							   "<div handle='playback' widget='Widget.Playback'></div>" +
+							   "<div handle='playback' widget='Api.Widget.Playback'></div>" +
 						   "</div>" +
 						"</div>" +
 						"<div class='button-column'>" + 
@@ -172,27 +183,16 @@ export default Core.Templatable("Application", class Application extends Templat
 				"</main>";
 	}
 	
-	static Nls() {
-		return {
-			"Application_Redo" : {
-				"en":"Load new simulation results"
-			},
-			"Application_Server" : {
-				"en":"Load simulation results from server"
-			},
-			"Application_Settings" : {
-				"en" : "Modify simulation playback settings"
-			},
-			"Application_Download" : {
-				"en" : "Download normalized simulation files"
-			},
-			"Application_Palette" : {
-				"en" : "Modify grid palette"
-			},
-			"Application_Linker" : {
-				"en" : "Review links between diagram and simulation structure"
-			}
-		}
+	localize(nls) {
+		super.localize(nls);
 		
+		nls.add("Application_Redo", "en", "Load new simulation results");
+		nls.add("Application_Server", "en", "Load simulation results from server");
+		nls.add("Application_Settings", "en", "Modify simulation playback settings");
+		nls.add("Application_Download", "en", "Download normalized simulation files");
+		nls.add("Application_Palette", "en", "Modify grid palette");
+		nls.add("Application_Linker", "en", "Review links between diagram and simulation structure");
+		nls.add("Popup_SL_Title", "en", "Load from server");
+		nls.add("Popup_Settings_Title", "en", "Settings");
 	}
-});
+}
